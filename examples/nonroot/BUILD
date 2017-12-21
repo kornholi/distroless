@@ -1,3 +1,4 @@
+load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
 load("@io_bazel_rules_docker//go:image.bzl", "go_image")
 load("@io_bazel_rules_docker//docker:docker.bzl", "docker_build")
 load("@io_bazel_rules_docker//contrib:passwd.bzl", "passwd_file")
@@ -5,17 +6,24 @@ load("@runtimes_common//structure_tests:tests.bzl", "structure_test")
 
 # Create a passwd file with a nonroot user and uid.
 passwd_file(
-    name = "nonroot",
+    name = "passwd",
     info = "nonroot",
     uid = 1002,
     username = "nonroot",
+)
+
+pkg_tar(
+    name = "passwd.tar",
+    srcs = [":passwd"],
+    mode = "0644",
+    package_dir = "etc",
 )
 
 # Include it in our image as a tar.
 docker_build(
     name = "passwd_image",
     base = "//base:base",
-    tars = [":nonroot.passwd.tar"],
+    tars = [":passwd.tar"],
     user = "nonroot",
     visibility = ["//visibility:private"],
 )

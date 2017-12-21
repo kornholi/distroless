@@ -1,18 +1,25 @@
 package(default_visibility = ["//visibility:public"])
 
+load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
 load("@io_bazel_rules_docker//docker:docker.bzl", "docker_build")
 load("@io_bazel_rules_docker//contrib:passwd.bzl", "passwd_file")
 load("@runtimes_common//structure_tests:tests.bzl", "structure_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_binary")
 
 # Create a default passwd_file rule.
-
 passwd_file(
-    name = "base_passwd",
+    name = "passwd",
     gid = 0,
     info = "root",
     uid = 0,
     username = "root",
+)
+
+pkg_tar(
+    name = "passwd.tar",
+    srcs = [":passwd"],
+    mode = "0644",
+    package_dir = "etc",
 )
 
 load("@package_bundle//file:packages.bzl", "packages")
@@ -39,7 +46,7 @@ docker_build(
     ],
     env = {"PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"},
     tars = [
-        ":base_passwd.passwd.tar",
+        ":passwd.tar",
         ":cacerts.tar",
         ":tmp.tar",
         "@debian_stretch//file:os_release.tar",
